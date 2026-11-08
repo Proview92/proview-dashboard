@@ -180,6 +180,29 @@ async function openApp(app) {
   }
 }
 
+// From the apps list: open the app in a NEW TAB and keep the dashboard here.
+// The tab is opened straight away (inside the click) so pop-up blockers allow it, then sent to the app
+// once its one-time sign-in link is ready. If the browser blocks new tabs, fall back to this tab.
+async function openAppInNewTab(app, btn) {
+  const tab = window.open("", "_blank");
+  if (!tab) return openApp(app);
+  try {
+    tab.document.title = "Opening " + NAMES[app] + "…";
+    tab.document.body.style.cssText = "font:16px system-ui,sans-serif;color:#334;display:grid;place-items:center;height:90vh";
+    tab.document.body.textContent = "Opening " + NAMES[app] + "…";
+  } catch (_) {}
+  const label = btn.innerHTML; btn.disabled = true; btn.textContent = "Opening…";
+  try {
+    const { url } = await call({ action: "go", app, return: "" });
+    tab.location.replace(url);
+  } catch (e) {
+    try { tab.close(); } catch (_) {}
+    await showApps(e.message, "bad");
+    return;
+  }
+  btn.disabled = false; btn.innerHTML = label;
+}
+
 async function showApps(msg = "", kind = "ok") {
   const { data: { user } } = await sb.auth.getUser();
   if (!user) return showForm();
@@ -194,7 +217,7 @@ async function showApps(msg = "", kind = "ok") {
   view(`<h1>Your Proview apps</h1><p class="who">Signed in as <b>${esc(user.email)}</b></p>${note(msg, kind)}
     <ul class="apps">${apps.map(row).join("")}</ul>
     <div class="links"><button class="linkbtn" id="chg">Change password</button><button class="linkbtn" id="out">Sign out</button></div>`);
-  document.querySelectorAll("[data-app]").forEach((b) => (b.onclick = () => openApp(b.dataset.app)));
+  document.querySelectorAll("[data-app]").forEach((b) => (b.onclick = () => openAppInNewTab(b.dataset.app, b)));
   $("#chg").onclick = () => showNewPassword();
   $("#out").onclick = async () => { await sb.auth.signOut(); mode = "signin"; showForm("You’ve been signed out of your Proview account.", "ok"); };
 }
