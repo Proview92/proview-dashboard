@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Proview dashboard</title>
 <meta name="description" content="Sign in once to Proview Bookings, Employee, Signage, Label and WiFi.">
-<link rel="icon" type="image/png" href="logo.png">
+<link rel="icon" type="image/png" href="icon-32.png?v=2">
+<link rel="apple-touch-icon" href="icon-180.png?v=2">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap">
 <style>
@@ -20,9 +21,9 @@
   button, input { font: inherit; color: inherit; }
   main { max-width: 440px; margin: 0 auto; padding: 48px 20px 40px; }
   .brand { display: flex; align-items: center; gap: 10px; justify-content: center; margin-bottom: 22px; }
-  .brand img { width: 40px; height: 28px; object-fit: contain; }
+  .brand img { width: 36px; height: 36px; border-radius: 22%; }
   .wordmark { font-weight: 700; font-size: 19px; letter-spacing: .04em; }
-  .wordmark span { color: var(--brand); }
+  .wordmark span { background: linear-gradient(90deg, #4FA3E0, #7A5FD0); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 28px 26px; box-shadow: 0 8px 30px rgba(16, 24, 40, .06); }
   h1 { font-size: 24px; line-height: 32px; margin: 0 0 6px; }
   p.sub { color: var(--muted); margin: 0 0 18px; }
@@ -61,7 +62,7 @@
 </head>
 <body>
 <main>
-  <div class="brand"><img src="logo.png" alt=""><span class="wordmark">PROVIEW<span> DASHBOARD</span></span></div>
+  <div class="brand"><img src="icons/dashboard.svg" alt=""><span class="wordmark">PROVIEW<span> DASHBOARD</span></span></div>
   <div class="card" id="view" aria-live="polite"><p><span class="spin" aria-hidden="true"></span>Loading…</p></div>
   <p class="foot">One login for Proview Bookings, Employee, Signage, Label and WiFi.</p>
 </main>
