@@ -44,13 +44,13 @@
   .notice.info { background: var(--brand-soft); color: var(--brand-dark); }
   .apps { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 10px; }
   .app { display: flex; align-items: center; gap: 14px; border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
-  .app .ic { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; background: var(--brand-soft); color: var(--brand-dark); font-weight: 700; flex: none; }
+  .app .ic { width: 44px; height: 44px; border-radius: 11px; display: block; flex: none; }
   .app .t { flex: 1; min-width: 0; }
   .app .t b { display: block; }
   .app .t small { color: var(--muted); display: block; }
   .app button { height: 40px; padding: 0 16px; border-radius: 10px; border: 0; background: var(--brand); color: #fff; font-weight: 600; cursor: pointer; flex: none; }
   .app.off { background: #fafbfc; }
-  .app.off .ic { background: var(--none-soft); color: var(--muted); }
+  .app.off .ic { filter: grayscale(1); opacity: .45; }
   .who { color: var(--muted); font-size: 14px; margin: 0 0 16px; word-break: break-all; }
   .foot { text-align: center; color: var(--muted); font-size: 13px; margin-top: 18px; }
   .spin { display: inline-block; width: 18px; height: 18px; border: 2px solid var(--brand-soft); border-top-color: var(--brand); border-radius: 50%; animation: s 1s linear infinite; vertical-align: -3px; margin-right: 8px; }
@@ -239,7 +239,7 @@ async function showApps(msg = "", kind = "ok") {
   let apps = [];
   try { apps = (await call({ action: "apps" })).apps; }
   catch (e) { msg = e.message; kind = "bad"; }
-  const row = (a) => `<li class="app ${a.ok ? "" : "off"}"><span class="ic" aria-hidden="true">${esc(a.name.split(" ")[1][0])}</span>
+  const row = (a) => `<li class="app ${a.ok ? "" : "off"}"><img class="ic" src="icons/${esc(a.app)}.svg" alt="" width="44" height="44">
       <span class="t"><b>${esc(a.name)}</b><small>${a.ok ? "Ready to open" : esc(a.reason || "No account for this email")}</small></span>
       ${a.ok ? `<button data-app="${a.app}">Open<span class="sr"> ${esc(a.name)}</span></button>` : ""}</li>`;
   view(`<h1>Your Proview apps</h1><p class="who">Signed in as <b>${esc(user.email)}</b></p>${note(msg, kind)}
