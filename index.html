@@ -33,6 +33,10 @@
   .go:hover { background: var(--brand-dark); }
   .go:disabled { opacity: .6; cursor: default; }
   .links { display: flex; justify-content: space-between; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+  .warn { border: 1px solid #f0c36d; background: #fff8e6; border-radius: 12px; padding: 12px 16px; display: grid; gap: 6px; color: #5c4400; }
+  .warn .acts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 4px; }
+  .warn button:not(.linkbtn) { height: 36px; padding: 0 14px; border-radius: 10px; border: 0; background: var(--brand); color: #fff; font-weight: 600; cursor: pointer; }
+  .warn button.ghost { background: #fff; color: var(--brand); border: 1px solid var(--line); }
   .linkbtn { background: none; border: 0; padding: 4px 0; color: var(--brand); font-weight: 600; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
   .notice { border-radius: 10px; padding: 10px 14px; margin: 0 0 14px; font-size: 14px; }
   .notice.bad { background: var(--bad-soft); color: var(--bad); }
@@ -181,11 +185,35 @@ async function openApp(app) {
 }
 
 // From the apps list: open the app in a NEW TAB and keep the dashboard here.
-// The tab is opened straight away (inside the click) so pop-up blockers allow it, then sent to the app
-// once its one-time sign-in link is ready. If the browser blocks new tabs, fall back to this tab.
-async function openAppInNewTab(app, btn) {
-  const tab = window.open("", "_blank");
+// Each app gets its own named tab ("proview-<app>"). If that tab is already open, warn instead of opening a second copy.
+// The tab is opened inside the click (so pop-up blockers allow it), then sent to the app's one-time sign-in link.
+const appTabs = {};
+function tabOpen(w) { try { return !!w && !w.closed; } catch (_) { return false; } }
+function showAlreadyOpen(app, btn) {
+  const li = btn.closest("li");
+  li.querySelector(".warn")?.remove();
+  const box = document.createElement("li");
+  box.className = "warn";
+  box.setAttribute("role", "alert");
+  box.innerHTML = `<b>${esc(NAMES[app])} is already open in another tab.</b>
+    <span>Opening it twice can mean working in two out-of-date copies.</span>
+    <span class="acts"><button type="button" data-go>Go to that tab</button><button type="button" class="ghost" data-fresh>Open a fresh copy</button><button type="button" class="linkbtn" data-x>Cancel</button></span>`;
+  li.after(box);
+  box.querySelector("[data-go]").onclick = () => { box.remove(); try { appTabs[app].focus(); } catch (_) {} };
+  box.querySelector("[data-fresh]").onclick = () => { box.remove(); openAppInNewTab(app, btn, true); };
+  box.querySelector("[data-x]").onclick = () => box.remove();
+}
+async function openAppInNewTab(app, btn, fresh = false) {
+  if (!fresh && tabOpen(appTabs[app])) return showAlreadyOpen(app, btn);
+  const tab = window.open("", "proview-" + app);
   if (!tab) return openApp(app);
+  if (!fresh) {
+    // A tab with this name may survive a dashboard reload: if it's already showing the app, warn.
+    let existing = false;
+    try { existing = tab.location.href !== "about:blank"; } catch (_) { existing = true; }   // cross-site = the app is loaded
+    if (existing) { appTabs[app] = tab; try { window.focus(); } catch (_) {} return showAlreadyOpen(app, btn); }
+  }
+  appTabs[app] = tab;
   try {
     tab.document.title = "Opening " + NAMES[app] + "…";
     tab.document.body.style.cssText = "font:16px system-ui,sans-serif;color:#334;display:grid;place-items:center;height:90vh";
