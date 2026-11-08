@@ -191,7 +191,7 @@ const appTabs = {};
 function tabOpen(w) { try { return !!w && !w.closed; } catch (_) { return false; } }
 function showAlreadyOpen(app, btn) {
   const li = btn.closest("li");
-  li.querySelector(".warn")?.remove();
+  document.querySelectorAll("li.warn").forEach(w => w.remove());   // only ever one warning on the page
   const box = document.createElement("li");
   box.className = "warn";
   box.setAttribute("role", "alert");
