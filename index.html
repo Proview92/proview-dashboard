@@ -43,6 +43,7 @@
   .notice.bad { background: var(--bad-soft); color: var(--bad); }
   .notice.ok { background: var(--ok-soft); color: var(--ok); }
   .notice.info { background: var(--brand-soft); color: var(--brand-dark); }
+  .master-note a { color: inherit; font-weight: 700; white-space: nowrap; }
   .apps { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 10px; }
   .app { display: flex; align-items: center; gap: 14px; border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
   .app .ic { width: 44px; height: 44px; border-radius: 11px; display: block; flex: none; }
@@ -237,13 +238,16 @@ async function showApps(msg = "", kind = "ok") {
   if (!user) return showForm();
   view(`<h1>Your Proview apps</h1><p class="who">Signed in as <b>${esc(user.email)}</b></p>${note(msg, kind)}
     <p><span class="spin" aria-hidden="true"></span>Checking your apps…</p>`);
-  let apps = [];
-  try { apps = (await call({ action: "apps" })).apps; }
-  catch (e) { msg = e.message; kind = "bad"; }
+  let apps = [], master = false;
+  // The Proview master (the licence portal's admin) has no master view in the apps: customers are opened from the portal.
+  const [a, m] = await Promise.allSettled([call({ action: "apps" }), sb.rpc("is_lic_admin")]);
+  if (a.status === "fulfilled") apps = a.value.apps; else { msg = a.reason?.message || String(a.reason); kind = "bad"; }
+  master = m.status === "fulfilled" && m.value?.data === true;
   const row = (a) => `<li class="app ${a.ok ? "" : "off"}"><img class="ic" src="icons/${esc(a.app)}.svg" alt="" width="44" height="44">
       <span class="t"><b>${esc(a.name)}</b><small>${a.ok ? "Ready to open" : esc(a.reason || "No account for this email")}</small></span>
       ${a.ok ? `<button data-app="${a.app}">Open<span class="sr"> ${esc(a.name)}</span></button>` : ""}</li>`;
   view(`<h1>Your Proview apps</h1><p class="who">Signed in as <b>${esc(user.email)}</b></p>${note(msg, kind)}
+    ${master ? `<div class="notice info master-note" role="note"><b>Customers are opened from the licence portal.</b> Open the customer there and press <b>Open in &lt;App&gt;</b> to work inside their business. <a href="https://license.proviewcrm.co.uk">Go to the licence portal</a></div>` : ""}
     <ul class="apps">${apps.map(row).join("")}</ul>
     <div class="links"><button class="linkbtn" id="chg">Change password</button><button class="linkbtn" id="out">Sign out</button></div>`);
   document.querySelectorAll("[data-app]").forEach((b) => (b.onclick = () => openAppInNewTab(b.dataset.app, b)));
