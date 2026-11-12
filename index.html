@@ -76,7 +76,7 @@ const HUB_KEY = "sb_publishable_t-flikzLh-wDUz7ZR5iPBA_ZmPNnkB6";
 // Own storage key: the licence admin page on this site uses the default one.
 const sb = createClient(HUB_URL, HUB_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: "pv-account" } });
 
-const NAMES = { bookings: "Proview Bookings", employee: "Proview Employee", signage: "Proview Signage", label: "Proview Label", wifi: "Proview WiFi", qrmenu: "Proview QR Menu" };
+const NAMES = { bookings: "Proview Bookings", employee: "Proview Employee", signage: "Proview Signage", label: "Proview Label", wifi: "Proview WiFi", qrmenu: "Proview QR Menu", team: "Proview Team" };
 const qs = new URLSearchParams(location.search);
 const APP = NAMES[qs.get("app")] ? qs.get("app") : null;  // set when an app sent the person here to sign in
 const RET = qs.get("return") || "";
