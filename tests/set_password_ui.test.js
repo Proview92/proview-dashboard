@@ -45,6 +45,7 @@ const linkHash = (type) => `#access_token=${jwt()}&expires_at=${Math.floor(Date.
   ok('invite link: "Set your password" ' + await txt(p, 'h1'), (await txt(p, 'h1')) === 'Set your password');
   const sub = await txt(p, '.sub');
   ok('invite link: welcome text names the email ' + sub, /Welcome to Proview/.test(sub) && sub.includes(EMAIL));
+  ok('invite link: says it is one password for every Proview site ' + sub, /one password for every Proview site/.test(sub));
   ok('invite link: two password boxes and "Set password and continue"', await p.evaluate(() => !!document.getElementById('n1') && !!document.getElementById('n2') && document.getElementById('go').textContent === 'Set password and continue'));
   ok('invite link: tokens cleared from the address bar', !(await p.evaluate(() => location.hash)).includes('access_token'));
   await p.screenshot({ path: path.join(os.tmpdir(), 'dash-set-password.png') });

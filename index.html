@@ -147,7 +147,7 @@ async function submit(ev) {
     if (mode === "reset") {
       const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: HERE });
       if (error) throw error;
-      mode = "signin"; return showForm("If there’s a Proview account for that email, a reset link is on its way.", "ok");
+      mode = "signin"; return showForm("If there’s a Proview account for that email, a reset link is on its way. Your password is the same on all Proview sites.", "ok");
     }
     if (mode === "signup") {
       const { data, error } = await sb.auth.signUp({ email, password: pw, options: { emailRedirectTo: HERE } });
@@ -166,9 +166,9 @@ async function showNewPassword(msg = "") {
   if (!session) { recovering = false; mode = "signin"; return showForm("That link has expired or was already used. Use “Forgot password?” below to get a new one."); }
   const em = session.user?.email || "";
   const title = pwHow === "change" ? "Choose a new password" : "Set your password";
-  const sub = pwHow === "invite" ? `Welcome to Proview. Choose a password for ${em}. You’ll use it to sign in here and open your Proview apps.`
-    : pwHow === "recovery" ? `Choose a password for ${em}. You’ll use it to sign in here and open your Proview apps.`
-    : "At least 8 characters.";
+  const sub = pwHow === "invite" ? `Welcome to Proview. Choose a password for ${em}. It is your one password for every Proview site: here and the sign-in page of each Proview app.`
+    : pwHow === "recovery" ? `Choose a password for ${em}. It is your one password for every Proview site: here and the sign-in page of each Proview app.`
+    : "At least 8 characters. Your password is the same on all Proview sites, so this changes it everywhere.";
   view(`<h1>${title}</h1><p class="sub">${esc(sub)}${pwHow === "change" ? "" : " At least 8 characters."}</p>${note(msg)}
     <form id="np" novalidate>
       <label for="n1">New password</label><input id="n1" type="password" autocomplete="new-password" minlength="8" required>
@@ -186,7 +186,7 @@ async function showNewPassword(msg = "") {
     if (error) return showNewPassword(friendly(error));
     const first = pwHow === "invite";
     recovering = false; pwHow = "change";
-    await signedIn(first ? "Password set. Welcome to Proview." : "Password saved.");
+    await signedIn(first ? "Password set. Welcome to Proview. Use it on every Proview site." : "Password saved. It is now your password on every Proview site.");
   };
 }
 
