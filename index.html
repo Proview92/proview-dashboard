@@ -53,6 +53,36 @@
   .app button { height: 40px; padding: 0 16px; border-radius: 10px; border: 0; background: var(--brand); color: #fff; font-weight: 600; cursor: pointer; flex: none; }
   .app.off { background: #fafbfc; }
   .app.off .ic { filter: grayscale(1); opacity: .45; }
+  /* Active / Inactive apps (owner, 19 Nov 2026) */
+  h2.sec { font-size: 15px; line-height: 22px; margin: 22px 0 0; display: flex; align-items: center; gap: 8px; }
+  h2.sec:first-of-type { margin-top: 6px; }
+  h2.sec .n { min-width: 22px; height: 22px; border-radius: 11px; background: var(--none-soft); color: var(--muted); font-size: 12px; font-weight: 700; text-align: center; line-height: 22px; padding: 0 6px; }
+  h2.sec.on .n { background: var(--ok-soft); color: var(--ok); }
+  p.secsub { color: var(--muted); font-size: 13.5px; margin: 2px 0 0; }
+  .app.off .t b { color: var(--ink2); }
+  .app.off button.trial { background: #fff; color: var(--brand); border: 1px solid var(--brand); }
+  .app.off button.trial:hover { background: var(--brand-soft); }
+  .app.off button.trial.done { border-color: var(--line); color: var(--muted); background: var(--none-soft); }
+  .app.off .grant { color: var(--muted); font-size: 13px; flex: none; max-width: 40%; text-align: right; }
+  .app.off small.req { color: var(--ok); }
+  li.trialf { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; background: #fff; display: grid; gap: 8px; }
+  li.trialf b { font-size: 15px; }
+  li.trialf p { margin: 0; color: var(--muted); font-size: 13.5px; }
+  li.trialf label { margin: 4px 0 0; font-size: 13.5px; }
+  li.trialf input, li.trialf textarea { width: 100%; border: 1px solid var(--line-input); border-radius: 10px; padding: 9px 12px; background: #fff; font: inherit; }
+  li.trialf input { height: 42px; }
+  li.trialf textarea { min-height: 64px; resize: vertical; }
+  li.trialf textarea:focus-visible { outline: 3px solid #90caf9; outline-offset: 2px; }
+  li.trialf .acts { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 4px; }
+  li.trialf .acts button:not(.linkbtn) { height: 40px; padding: 0 18px; border-radius: 10px; border: 0; background: var(--brand); color: #fff; font-weight: 600; cursor: pointer; }
+  li.trialf .acts button:disabled { opacity: .6; cursor: default; }
+  li.trialmsg { list-style: none; }
+  li.trialmsg .notice { margin: 0; }
+  @media (max-width: 420px) {
+    .app { gap: 12px; padding: 12px 12px; }
+    .app .ic { width: 40px; height: 40px; }
+    .app button { padding: 0 12px; }
+  }
   .who { color: var(--muted); font-size: 14px; margin: 0 0 16px; word-break: break-all; }
   .foot { text-align: center; color: var(--muted); font-size: 13px; margin-top: 18px; }
   .spin { display: inline-block; width: 18px; height: 18px; border: 2px solid var(--brand-soft); border-top-color: var(--brand); border-radius: 50%; animation: s 1s linear infinite; vertical-align: -3px; margin-right: 8px; }
@@ -247,6 +277,63 @@ async function openAppInNewTab(app, btn, fresh = false) {
   btn.disabled = false; btn.innerHTML = label;
 }
 
+// ---------- Request trial (inactive apps) ----------
+// One row per request in the hub's public.lic_trial_requests. The database takes the email and time from the session
+// (never from here), allows one open ("new") request per person per app, and lets only the master read everyone's.
+let TRIALS = {};   // app -> this person's open request { created_at }
+const fmtDay = (d) => new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+async function myTrialRequests(email) {
+  // filter on the email too: the master can read every request
+  const { data, error } = await sb.from("lic_trial_requests").select("app,status,created_at").eq("email", String(email || "").toLowerCase()).eq("status", "new");
+  if (error) throw error;
+  return Object.fromEntries((data || []).map((r) => [r.app, r]));
+}
+function clearTrialUi() { document.querySelectorAll("li.trialf, li.trialmsg").forEach((x) => x.remove()); }
+function showRequested(app, btn) {
+  clearTrialUi();
+  const r = TRIALS[app]; const li = btn.closest("li");
+  const box = document.createElement("li"); box.className = "trialmsg";
+  box.innerHTML = `<div class="notice ok" role="status">Requested on ${esc(fmtDay(r?.created_at || Date.now()))}, we’ll be in touch.</div>`;
+  li.after(box);
+}
+function markRequested(app, btn, r) {
+  TRIALS[app] = r;
+  const li = btn.closest("li");
+  btn.classList.add("done"); btn.innerHTML = `Requested<span class="sr"> (${esc(NAMES[app] || app)})</span>`;
+  const sm = li.querySelector(".t small"); if (sm) { sm.className = "req"; sm.textContent = "Trial requested " + fmtDay(r.created_at); }
+}
+function trialClick(app, btn, name) {
+  if (TRIALS[app]) return showRequested(app, btn);
+  clearTrialUi();
+  const li = btn.closest("li");
+  const box = document.createElement("li"); box.className = "trialf";
+  box.innerHTML = `<form novalidate><b>Request a trial of ${esc(name)}</b>
+    <p>We’ll get back to you to set it up. Nothing changes on your account until then.</p>
+    <label for="trBiz">Business name <span style="font-weight:400;color:var(--muted)">(optional)</span></label><input id="trBiz" maxlength="120" autocomplete="organization">
+    <label for="trNote">Note <span style="font-weight:400;color:var(--muted)">(optional)</span></label><textarea id="trNote" maxlength="500" placeholder="e.g. how many locations or TVs"></textarea>
+    <div class="trerr"></div>
+    <div class="acts"><button type="submit" id="trSend">Send</button><button type="button" class="linkbtn" id="trX">Cancel</button></div></form>`;
+  li.after(box);
+  box.querySelector("#trX").onclick = () => { box.remove(); btn.focus(); };
+  box.querySelector("form").onsubmit = async (ev) => {
+    ev.preventDefault();
+    const send = box.querySelector("#trSend"); send.disabled = true; send.textContent = "Sending…";
+    const business = box.querySelector("#trBiz").value.trim().slice(0, 120) || null, note_ = box.querySelector("#trNote").value.trim().slice(0, 500) || null;
+    const { data, error } = await sb.from("lic_trial_requests").insert({ app, business, note: note_ }).select("id,app,status,created_at").single();
+    if (error && error.code === "23505") {   // already asked (e.g. in another tab): show when
+      try { TRIALS = await myTrialRequests((await sb.auth.getUser()).data.user?.email); } catch (_) {}
+      box.remove(); markRequested(app, btn, TRIALS[app] || { created_at: new Date().toISOString() }); return showRequested(app, btn);
+    }
+    if (error) { send.disabled = false; send.textContent = "Send"; box.querySelector(".trerr").innerHTML = note(friendly(error)); return; }
+    box.remove(); markRequested(app, btn, data);
+    const done = document.createElement("li"); done.className = "trialmsg";
+    done.innerHTML = `<div class="notice ok" role="status">Trial request sent for ${esc(name)}. We’ll be in touch.</div>`;
+    btn.closest("li").after(done);
+    sb.functions.invoke("trial-request-notify", { body: { id: data.id } }).catch(() => {});   // optional email to the master
+  };
+  setTimeout(() => box.querySelector("#trBiz").focus(), 30);
+}
+
 async function showApps(msg = "", kind = "ok") {
   const { data: { user } } = await sb.auth.getUser();
   if (!user) return showForm();
@@ -254,17 +341,33 @@ async function showApps(msg = "", kind = "ok") {
     <p><span class="spin" aria-hidden="true"></span>Checking your apps…</p>`);
   let apps = [], master = false;
   // The Proview master (the licence portal's admin) has no master view in the apps: customers are opened from the portal.
-  const [a, m] = await Promise.allSettled([call({ action: "apps" }), sb.rpc("is_lic_admin")]);
+  const [a, m, t] = await Promise.allSettled([call({ action: "apps" }), sb.rpc("is_lic_admin"), myTrialRequests(user.email)]);
   if (a.status === "fulfilled") apps = a.value.apps.filter((x) => !HIDDEN.has(x.app)); else { msg = a.reason?.message || String(a.reason); kind = "bad"; }
   master = m.status === "fulfilled" && m.value?.data === true;
-  const row = (a) => `<li class="app ${a.ok ? "" : "off"}"><img class="ic" src="icons/${esc(a.app)}.svg" alt="" width="44" height="44">
-      <span class="t"><b>${esc(a.name)}</b><small>${a.ok ? "Ready to open" : esc(a.reason || "No account for this email")}</small></span>
-      ${a.ok ? `<button data-app="${a.app}">Open<span class="sr"> ${esc(a.name)}</span></button>` : ""}</li>`;
+  TRIALS = t.status === "fulfilled" ? t.value : {};
+  // Active apps open as before. Inactive apps (owner, 19 Nov 2026) get "Request trial" instead of Open: it only records a
+  // request for the master; nothing is granted automatically (NO_TRIAL). The master grants trials from the licence portal,
+  // so his own inactive apps show no request button.
+  const active = apps.filter((x) => x.ok), inactive = apps.filter((x) => !x.ok);
+  const row = (a) => `<li class="app"><img class="ic" src="icons/${esc(a.app)}.svg" alt="" width="44" height="44">
+      <span class="t"><b>${esc(a.name)}</b><small>Ready to open</small></span>
+      <button data-app="${a.app}">Open<span class="sr"> ${esc(a.name)}</span></button></li>`;
+  const offRow = (a) => { const r = TRIALS[a.app];
+    return `<li class="app off" data-off="${esc(a.app)}"><img class="ic" src="icons/${esc(a.app)}.svg" alt="" width="44" height="44">
+      <span class="t"><b>${esc(a.name)}</b>${r ? `<small class="req">Trial requested ${esc(fmtDay(r.created_at))}</small>` : `<small>${esc(a.reason || "No account for this email")}</small>`}</span>
+      ${master ? `<span class="grant">Grant trials in the licence portal</span>`
+        : r ? `<button class="trial done" data-trial="${esc(a.app)}">Requested<span class="sr"> (${esc(a.name)})</span></button>`
+        : `<button class="trial" data-trial="${esc(a.app)}">Request trial<span class="sr"> of ${esc(a.name)}</span></button>`}</li>`; };
   view(`<h1>Your Proview apps</h1><p class="who">Signed in as <b>${esc(user.email)}</b></p>${note(msg, kind)}
     ${master ? `<div class="notice info master-note" role="note"><b>Customers are opened from the licence portal.</b> Open the customer there and press <b>Open in &lt;App&gt;</b> to work inside their business. <a href="https://license.proviewcrm.co.uk">Go to the licence portal</a></div>` : ""}
-    <ul class="apps">${apps.map(row).join("")}</ul>
+    ${active.length ? `<h2 class="sec on" id="secActive">Active apps <span class="n">${active.length}</span></h2>
+    <ul class="apps" aria-labelledby="secActive">${active.map(row).join("")}</ul>` : ""}
+    ${inactive.length ? `<h2 class="sec" id="secInactive">Inactive apps <span class="n">${inactive.length}</span></h2>
+    <p class="secsub">${master ? "Not on your Proview account." : "Not on your account yet. Request a trial and we’ll be in touch."}</p>
+    <ul class="apps" aria-labelledby="secInactive">${inactive.map(offRow).join("")}</ul>` : ""}
     <div class="links"><button class="linkbtn" id="chg">Change password</button><button class="linkbtn" id="out">Sign out</button></div>`);
   document.querySelectorAll("[data-app]").forEach((b) => (b.onclick = () => openAppInNewTab(b.dataset.app, b)));
+  document.querySelectorAll("[data-trial]").forEach((b) => (b.onclick = () => trialClick(b.dataset.trial, b, apps.find((x) => x.app === b.dataset.trial)?.name || NAMES[b.dataset.trial])));
   $("#chg").onclick = () => { pwHow = "change"; showNewPassword(); };
   $("#out").onclick = async () => { await sb.auth.signOut(); mode = "signin"; showForm("You’ve been signed out of your Proview account.", "ok"); };
 }
