@@ -90,7 +90,7 @@ const view = (html) => { $("#view").innerHTML = html; };
 const note = (msg, kind = "bad") => (msg ? `<div class="notice ${kind}" role="${kind === "bad" ? "alert" : "status"}">${esc(msg)}</div>` : "");
 const friendly = (e) => {
   const t = String(e?.message || e || "");
-  if (/invalid login credentials/i.test(t)) return "That email or password isn’t right. Try again, or use “Forgot password?”.";
+  if (/invalid login credentials/i.test(t)) return "That email or password isn’t right. Try again, or use “Forgot password?”. New to the Proview dashboard? Open the invite email we sent you to set your password.";
   if (/email not confirmed/i.test(t)) return "Confirm your email first: open the link we emailed you.";
   if (/already registered/i.test(t)) return "There’s already a Proview account for this email. Sign in instead.";
   if (/rate limit|too many/i.test(t)) return "Too many attempts. Please wait a minute and try again.";
@@ -107,6 +107,10 @@ async function call(body) {
 }
 
 let mode = "signin", recovering = false;
+// How the password form was reached: "invite" (a Proview dashboard invite from the licence portal), "recovery" (a
+// "choose a password" / reset link) or "change" (Change password while signed in). Invite and recovery links sign the
+// person in first (detectSessionInUrl); the form then sets their password and opens their apps.
+let pwHow = "change";
 
 function showForm(msg = "", kind = "bad") {
   const up = mode === "signup", reset = mode === "reset";
@@ -157,12 +161,19 @@ async function submit(ev) {
   } catch (e) { showForm(friendly(e)); }
 }
 
-function showNewPassword(msg = "") {
-  view(`<h1>Choose a new password</h1><p class="sub">At least 8 characters.</p>${note(msg)}
+async function showNewPassword(msg = "") {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { recovering = false; mode = "signin"; return showForm("That link has expired or was already used. Use “Forgot password?” below to get a new one."); }
+  const em = session.user?.email || "";
+  const title = pwHow === "change" ? "Choose a new password" : "Set your password";
+  const sub = pwHow === "invite" ? `Welcome to Proview. Choose a password for ${em}. You’ll use it to sign in here and open your Proview apps.`
+    : pwHow === "recovery" ? `Choose a password for ${em}. You’ll use it to sign in here and open your Proview apps.`
+    : "At least 8 characters.";
+  view(`<h1>${title}</h1><p class="sub">${esc(sub)}${pwHow === "change" ? "" : " At least 8 characters."}</p>${note(msg)}
     <form id="np" novalidate>
       <label for="n1">New password</label><input id="n1" type="password" autocomplete="new-password" minlength="8" required>
       <label for="n2">Confirm new password</label><input id="n2" type="password" autocomplete="new-password" required>
-      <button class="go" id="go">Save password</button>
+      <button class="go" id="go">${pwHow === "change" ? "Save password" : "Set password and continue"}</button>
     </form>`);
   setTimeout(() => $("#n1").focus(), 30);
   $("#np").onsubmit = async (ev) => {
@@ -173,8 +184,9 @@ function showNewPassword(msg = "") {
     $("#go").disabled = true;
     const { error } = await sb.auth.updateUser({ password: a });
     if (error) return showNewPassword(friendly(error));
-    recovering = false;
-    await signedIn("Password saved.");
+    const first = pwHow === "invite";
+    recovering = false; pwHow = "change";
+    await signedIn(first ? "Password set. Welcome to Proview." : "Password saved.");
   };
 }
 
@@ -253,7 +265,7 @@ async function showApps(msg = "", kind = "ok") {
     <ul class="apps">${apps.map(row).join("")}</ul>
     <div class="links"><button class="linkbtn" id="chg">Change password</button><button class="linkbtn" id="out">Sign out</button></div>`);
   document.querySelectorAll("[data-app]").forEach((b) => (b.onclick = () => openAppInNewTab(b.dataset.app, b)));
-  $("#chg").onclick = () => showNewPassword();
+  $("#chg").onclick = () => { pwHow = "change"; showNewPassword(); };
   $("#out").onclick = async () => { await sb.auth.signOut(); mode = "signin"; showForm("You’ve been signed out of your Proview account.", "ok"); };
 }
 
@@ -263,15 +275,18 @@ async function signedIn(msg = "") {
   return showApps(msg);
 }
 
-sb.auth.onAuthStateChange((ev) => { if (ev === "PASSWORD_RECOVERY") { recovering = true; showNewPassword(); } });
+// (no auth calls inside this callback: supabase-js would wait on itself, so the form is shown just after)
+sb.auth.onAuthStateChange((ev) => { if (ev === "PASSWORD_RECOVERY") { recovering = true; if (pwHow === "change") pwHow = "recovery"; setTimeout(() => showNewPassword(), 0); } });
 
+const LINK_TYPE = new URLSearchParams(location.hash.slice(1)).get("type");   // read before supabase-js clears the hash
+if (LINK_TYPE === "invite" || LINK_TYPE === "recovery") { recovering = true; pwHow = LINK_TYPE; }
 (async () => {
   const hp = new URLSearchParams(location.hash.slice(1));
   const linkErr = qs.get("error_description") || hp.get("error_description");
   await new Promise((r) => setTimeout(r, 50)); // let detectSessionInUrl finish
   const { data: { session } } = await sb.auth.getSession();
   if (linkErr) return showForm("That link didn’t work: " + linkErr + ". Sign in below, or use “Forgot password?”.");
-  if (hp.get("type") === "recovery" || recovering) { recovering = true; return showNewPassword(); }
+  if (recovering) return showNewPassword();
   if (!session) return showForm();
   signedIn(hp.get("type") === "signup" ? "Email confirmed. Welcome to your Proview account." : "");
 })();
