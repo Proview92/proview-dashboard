@@ -84,6 +84,68 @@
     .app button { padding: 0 12px; }
   }
   .who { color: var(--muted); font-size: 14px; margin: 0 0 16px; word-break: break-all; }
+  /* App grid layout (owner, 20 Nov 2026): signed in, the apps page gets a dark header bar, centred app tiles and
+     inactive apps with a line on what each one does. The sign-in and password forms keep the narrow card. */
+  .top { display: none; }
+  body.wide .top { display: block; background: #1C2340; color: #fff; }
+  .top .in { max-width: 1120px; margin: 0 auto; padding: 14px 32px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .top .brand { margin: 0; }
+  .top .wordmark span { background: none; -webkit-background-clip: border-box; background-clip: border-box; color: #9DB8F2; }
+  .top .acct { display: flex; align-items: center; gap: 16px; min-width: 0; }
+  .top .em { color: #B9C1D9; font-size: 15px; word-break: break-all; }
+  .top .em b { color: #fff; }
+  .top .acct button { height: 44px; padding: 0 18px; border-radius: 10px; border: 1px solid #B9C1D9; background: transparent; color: #fff; font-weight: 600; cursor: pointer; flex: none; }
+  .top .acct button:hover { background: rgba(255, 255, 255, .1); }
+  body.wide main { max-width: 1120px; padding: 40px 32px 56px; }
+  body.wide main > .brand { display: none; }
+  body.wide .card { background: none; border: 0; border-radius: 0; box-shadow: none; padding: 0; }
+  body.wide h1 { font-size: 36px; line-height: 1.2; margin-bottom: 8px; }
+  body.wide .who { display: none; }
+  body.wide h2.sec { font-size: 20px; line-height: 28px; margin-top: 40px; }
+  body.wide h2.sec:first-of-type { margin-top: 28px; }
+  body.wide p.secsub { font-size: 15px; margin-top: 4px; }
+  body.wide .apps { margin-top: 16px; gap: 20px; }
+  body.wide .apps > li:not(.app) { grid-column: 1 / -1; }
+  body.wide .apps.grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+  body.wide .apps.grid .app { flex-direction: column; text-align: center; gap: 16px; padding: 24px; border-radius: 16px; background: #fff; }
+  body.wide .apps.grid .app .ic { width: 64px; height: 64px; border-radius: 14px; }
+  body.wide .apps.grid .app .t { flex: none; width: 100%; }
+  body.wide .apps.grid .app .t b { font-size: 19px; line-height: 1.3; margin-bottom: 4px; }
+  body.wide .apps.grid .app .t small { font-size: 15px; }
+  body.wide .apps.grid .app .t small::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--ok); margin-right: 8px; vertical-align: 1px; }
+  body.wide .apps.grid .app button { width: 100%; height: 48px; font-size: 16px; }
+  body.wide .apps.more { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
+  body.wide .apps.more .app { flex-wrap: wrap; gap: 16px; padding: 20px 24px; border: 1px dashed #B4BACB; border-radius: 16px; }
+  body.wide .apps.more .app .ic { width: 48px; height: 48px; border-radius: 12px; }
+  body.wide .apps.more .app .t { flex: 1 1 160px; }
+  body.wide .apps.more .app .t b { font-size: 17px; }
+  .app.off .t .d { display: block; color: var(--muted); font-size: 14px; line-height: 1.45; }
+  body.wide .apps.more .app button { height: 44px; padding: 0 18px; }
+  body.wide .links { margin-top: 32px; }
+  body.wide .foot { display: none; }
+  @media (max-width: 640px) {
+    .top .in { padding: 10px 16px; }
+    .top .wordmark { font-size: 16px; }
+    .top .brand img { width: 32px; height: 32px; }
+    .top .em { display: none; }
+    body.wide main { padding: 24px 16px 32px; }
+    body.wide h1 { font-size: 26px; margin-bottom: 4px; }
+    body.wide .who { display: block; margin: 0; }
+    body.wide h2.sec { font-size: 17px; margin-top: 28px; }
+    body.wide h2.sec:first-of-type { margin-top: 20px; }
+    body.wide .apps { gap: 12px; margin-top: 12px; }
+    body.wide .apps.grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    body.wide .apps.grid .app { padding: 16px 12px; gap: 12px; }
+    body.wide .apps.grid .app .ic { width: 52px; height: 52px; border-radius: 12px; }
+    body.wide .apps.grid .app .t b { font-size: 17px; }
+    body.wide .apps.grid .app .t small { font-size: 14px; }
+    body.wide .apps.grid .app button { height: 44px; }
+    body.wide .apps.more { grid-template-columns: minmax(0, 1fr); }
+    body.wide .apps.more .app { padding: 16px; gap: 12px; }
+    body.wide .apps.more .app .ic { width: 40px; height: 40px; border-radius: 10px; }
+    body.wide .apps.more .app button, body.wide .apps.more .app .grant { flex: 1 1 100%; max-width: none; text-align: left; }
+    body.wide .apps.more .app button { text-align: center; }
+  }
   .foot { text-align: center; color: var(--muted); font-size: 13px; margin-top: 18px; }
   .spin { display: inline-block; width: 18px; height: 18px; border: 2px solid var(--brand-soft); border-top-color: var(--brand); border-radius: 50%; animation: s 1s linear infinite; vertical-align: -3px; margin-right: 8px; }
   @keyframes s { to { transform: rotate(1turn); } }
@@ -92,6 +154,7 @@
 </style>
 </head>
 <body>
+<header class="top"><div class="in"><div class="brand"><img src="icons/dashboard.svg" alt=""><span class="wordmark">PROVIEW<span> DASHBOARD</span></span></div><div class="acct" id="acct"></div></div></header>
 <main>
   <div class="brand"><img src="icons/dashboard.svg" alt=""><span class="wordmark">PROVIEW<span> DASHBOARD</span></span></div>
   <div class="card" id="view" aria-live="polite"><p><span class="spin" aria-hidden="true"></span>Loading…</p></div>
@@ -110,13 +173,23 @@ const NAMES = { bookings: "Proview Bookings", employee: "Proview Employee", sign
 const qs = new URLSearchParams(location.search);
 // Not listed on the dashboard (owner, 19 Nov 2026). Kept in NAMES so an app can still send someone here to sign in.
 const HIDDEN = new Set(["bookings", "employee"]);
+// One line on what each app does, shown on an inactive app (instead of "No account for this email").
+const ABOUT = {
+  signage: "Show your menus and promotions on your TVs and digital screens.",
+  label: "Food labelling for your kitchen: print prep and Natasha’s Law labels, and track expiry and wastage.",
+  qrmenu: "Digital QR menus and ordering for your restaurant, with guest and marketing tools.",
+  team: "Staff rotas, clock-in, timesheets, leave, tasks and documents in one place.",
+  reservations: "Take and manage your reservations online.",
+  wifi: "Guest WiFi for your venue.",
+};
 const APP = NAMES[qs.get("app")] ? qs.get("app") : null;  // set when an app sent the person here to sign in
 const RET = qs.get("return") || "";
 const HERE = location.origin + location.pathname + (APP ? "?app=" + APP + (RET ? "&return=" + encodeURIComponent(RET) : "") : "");
 
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const view = (html) => { $("#view").innerHTML = html; };
+// wide = the signed-in apps page (dark header bar with the account, full-width grid); every other view is the narrow card.
+const view = (html, wide = false) => { document.body.classList.toggle("wide", wide); if (!wide) $("#acct").innerHTML = ""; $("#view").innerHTML = html; };
 const note = (msg, kind = "bad") => (msg ? `<div class="notice ${kind}" role="${kind === "bad" ? "alert" : "status"}">${esc(msg)}</div>` : "");
 const friendly = (e) => {
   const t = String(e?.message || e || "");
@@ -300,7 +373,8 @@ function markRequested(app, btn, r) {
   TRIALS[app] = r;
   const li = btn.closest("li");
   btn.classList.add("done"); btn.innerHTML = `Requested<span class="sr"> (${esc(NAMES[app] || app)})</span>`;
-  const sm = li.querySelector(".t small"); if (sm) { sm.className = "req"; sm.textContent = "Trial requested " + fmtDay(r.created_at); }
+  let sm = li.querySelector(".t small"); if (!sm) { sm = document.createElement("small"); li.querySelector(".t").appendChild(sm); }
+  sm.className = "req"; sm.textContent = "Trial requested " + fmtDay(r.created_at);
 }
 function trialClick(app, btn, name) {
   if (TRIALS[app]) return showRequested(app, btn);
@@ -338,7 +412,9 @@ async function showApps(msg = "", kind = "ok") {
   const { data: { user } } = await sb.auth.getUser();
   if (!user) return showForm();
   view(`<h1>Your Proview apps</h1><p class="who">Signed in as <b>${esc(user.email)}</b></p>${note(msg, kind)}
-    <p><span class="spin" aria-hidden="true"></span>Checking your apps…</p>`);
+    <p><span class="spin" aria-hidden="true"></span>Checking your apps…</p>`, true);
+  $("#acct").innerHTML = `<span class="em">Signed in as <b>${esc(user.email)}</b></span><button type="button" id="out">Sign out</button>`;
+  $("#out").onclick = async () => { await sb.auth.signOut(); mode = "signin"; showForm("You’ve been signed out of your Proview account.", "ok"); };
   let apps = [], master = false;
   // The Proview master (the licence portal's admin) has no master view in the apps: customers are opened from the portal.
   const [a, m, t] = await Promise.allSettled([call({ action: "apps" }), sb.rpc("is_lic_admin"), myTrialRequests(user.email)]);
@@ -354,22 +430,21 @@ async function showApps(msg = "", kind = "ok") {
       <button data-app="${a.app}">Open<span class="sr"> ${esc(a.name)}</span></button></li>`;
   const offRow = (a) => { const r = TRIALS[a.app];
     return `<li class="app off" data-off="${esc(a.app)}"><img class="ic" src="icons/${esc(a.app)}.svg" alt="" width="44" height="44">
-      <span class="t"><b>${esc(a.name)}</b>${r ? `<small class="req">Trial requested ${esc(fmtDay(r.created_at))}</small>` : `<small>${esc(a.reason || "No account for this email")}</small>`}</span>
+      <span class="t"><b>${esc(a.name)}</b><span class="d">${esc(ABOUT[a.app] || a.reason || "No account for this email")}</span>${r ? `<small class="req">Trial requested ${esc(fmtDay(r.created_at))}</small>` : ""}</span>
       ${master ? `<span class="grant">Grant trials in the licence portal</span>`
         : r ? `<button class="trial done" data-trial="${esc(a.app)}">Requested<span class="sr"> (${esc(a.name)})</span></button>`
         : `<button class="trial" data-trial="${esc(a.app)}">Request trial<span class="sr"> of ${esc(a.name)}</span></button>`}</li>`; };
   view(`<h1>Your Proview apps</h1><p class="who">Signed in as <b>${esc(user.email)}</b></p>${note(msg, kind)}
     ${master ? `<div class="notice info master-note" role="note"><b>Customers are opened from the licence portal.</b> Open the customer there and press <b>Open in &lt;App&gt;</b> to work inside their business. <a href="https://license.proviewcrm.co.uk">Go to the licence portal</a></div>` : ""}
     ${active.length ? `<h2 class="sec on" id="secActive">Active apps <span class="n">${active.length}</span></h2>
-    <ul class="apps" aria-labelledby="secActive">${active.map(row).join("")}</ul>` : ""}
+    <ul class="apps grid" aria-labelledby="secActive">${active.map(row).join("")}</ul>` : ""}
     ${inactive.length ? `<h2 class="sec" id="secInactive">Inactive apps <span class="n">${inactive.length}</span></h2>
     <p class="secsub">${master ? "Not on your Proview account." : "Not on your account yet. Request a trial and we’ll be in touch."}</p>
-    <ul class="apps" aria-labelledby="secInactive">${inactive.map(offRow).join("")}</ul>` : ""}
-    <div class="links"><button class="linkbtn" id="chg">Change password</button><button class="linkbtn" id="out">Sign out</button></div>`);
+    <ul class="apps more" aria-labelledby="secInactive">${inactive.map(offRow).join("")}</ul>` : ""}
+    <div class="links"><button class="linkbtn" id="chg">Change password</button></div>`, true);
   document.querySelectorAll("[data-app]").forEach((b) => (b.onclick = () => openAppInNewTab(b.dataset.app, b)));
   document.querySelectorAll("[data-trial]").forEach((b) => (b.onclick = () => trialClick(b.dataset.trial, b, apps.find((x) => x.app === b.dataset.trial)?.name || NAMES[b.dataset.trial])));
   $("#chg").onclick = () => { pwHow = "change"; showNewPassword(); };
-  $("#out").onclick = async () => { await sb.auth.signOut(); mode = "signin"; showForm("You’ve been signed out of your Proview account.", "ok"); };
 }
 
 async function signedIn(msg = "") {

@@ -124,12 +124,13 @@ const NONE_APPS = CUSTOMER_APPS.map((a) => ({ ...a, ok: false, reason: 'No accou
   p = await open({ email: C, apps: CUSTOMER_APPS, width: 390, height: 844 });
   const lay = await p.evaluate(() => {
     const vw = document.documentElement.clientWidth, over = document.documentElement.scrollWidth > vw;
-    const rows = [...document.querySelectorAll('li.app')].map((li) => { const r = li.getBoundingClientRect(), b = li.querySelector('button')?.getBoundingClientRect(), t = li.querySelector('.t b').getBoundingClientRect(); return { right: r.right, bR: b ? b.right : 0, bH: b ? b.height : 0, tW: t.width, tR: t.right, bL: b ? b.left : 0 }; });
+    const rows = [...document.querySelectorAll('li.app')].map((li) => { const r = li.getBoundingClientRect(), b = li.querySelector('button')?.getBoundingClientRect(), t = li.querySelector('.t b').getBoundingClientRect(); return { right: r.right, bR: b ? b.right : 0, bH: b ? b.height : 0, tW: t.width, tR: t.right, tB: t.bottom, bL: b ? b.left : 0, bT: b ? b.top : 0 }; });
     return { vw, over, rows };
   });
   ok('390px: no sideways scrolling ' + JSON.stringify({ vw: lay.vw, over: lay.over }), !lay.over && lay.vw === 390);
   ok('390px: every button inside its row and at least 40px tall', lay.rows.every((r) => r.bR <= r.right && r.bH >= 40));
-  ok('390px: names not covered by the buttons', lay.rows.every((r) => r.tR <= r.bL + 1 && r.tW > 60));
+  // App grid layout (20 Nov 2026): the button sits under the name (tiles, and inactive rows at this width), or beside it.
+  ok('390px: names not covered by the buttons', lay.rows.every((r) => (r.tB <= r.bT + 1 || r.tR <= r.bL + 1) && r.tW > 60));
   await p.screenshot({ path: SHOTS.mobile, fullPage: true });
   await p.click('[data-trial="wifi"]'); await wait(250);
   const fl = await p.evaluate(() => { const f = document.querySelector('li.trialf').getBoundingClientRect(); return { r: f.right, vw: document.documentElement.clientWidth, over: document.documentElement.scrollWidth > document.documentElement.clientWidth }; });
